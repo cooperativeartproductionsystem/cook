@@ -1,18 +1,29 @@
 <script setup>
 import { ref, computed } from "vue";
 import Home from "./views/Home.vue";
-import About from "./views/About.vue";
+import Menu from "./views/Menu.vue";
+import Combo from "./views/Combo/Basis.vue";
+import Topping from "./views/Combo/Topping.vue";
+import Sauce from "./views/Combo/Sauce.vue";
+import Snack from "./views/Snack/Snack.vue";
+import Receipt from "./views/Receipt.vue";
 import NotFound from "./views/NotFound.vue";
 
 const routes = {
   "/": Home,
-  "/about": About,
+  "/menu": Menu,
+  "/combo": Combo,
+  "/combo/topping": Topping,
+  "/combo/sauce": Sauce,
+  "/receipt": Receipt,
+
+  "/snack": Snack,
 };
 
-const currentPath = ref(window.location.hash);
+const currentPath = ref(window.location.hash || "#/");
 
 window.addEventListener("hashchange", () => {
-  currentPath.value = window.location.hash;
+  currentPath.value = window.location.hash || "#/";
 });
 
 const currentView = computed(() => {
@@ -21,10 +32,9 @@ const currentView = computed(() => {
 </script>
 
 <template>
-  <a href="#/">Home</a> | <a href="#/about">About</a> |
-  <a href="#/non-existent-path">Broken Link</a>
   <component :is="currentView" />
 </template>
+
 <style lang="scss">
 @import "./assets/style.scss";
 </style>

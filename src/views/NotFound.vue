@@ -1,5 +1,9 @@
-<script setup></script>
 <template>
-  <h1>Page Not Found</h1>
-  <p>The requested page could not be found.</p>
+  <section class="not-found-page">
+    <div class="art-card">
+      <h1>404</h1>
+      <p>Page not found / Seite nicht gefunden</p>
+      <a class="back-btn" href="#/">Back to home / Zur Startseite</a>
+    </div>
+  </section>
 </template>
