@@ -1,5 +1,6 @@
 <script setup>
 import { ref } from "vue";
+import RadialInterface from "../components/RadialInterface.vue";
 
 const name = ref("");
 const email = ref("");
@@ -54,6 +55,11 @@ const goOrders = () => {
         View Orders / Bestellungen anzeigen
       </button>
     </div>
+
+    <!-- Radial Interface Component -->
+    <div class="radial-container">
+      <RadialInterface :segmentCounts="[4, 6, 8]" :size="250" />
+    </div>
   </section>
 </template>
 
@@ -73,5 +79,12 @@ const goOrders = () => {
   &:hover {
     background-color: #444;
   }
+}
+
+.radial-container {
+  margin-top: 40px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 </style>
