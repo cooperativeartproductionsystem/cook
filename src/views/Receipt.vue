@@ -2,29 +2,22 @@
 const name = localStorage.getItem("art_name") || "Not provided";
 const email = localStorage.getItem("art_email") || "Not provided";
 
-const basis = localStorage.getItem("combo_basis") || "Not selected";
-const ingredients =
-  localStorage.getItem("combo_ingredients") || "Not selected yet";
-const topping = localStorage.getItem("combo_topping") || "Not selected";
-
-const calmSpicy = Number(localStorage.getItem("sauce_calm_spicy") || 50);
-const monochromeColorful = Number(
-  localStorage.getItem("sauce_monochrome_colorful") || 50,
-);
-const sweetSalty = Number(localStorage.getItem("sauce_sweet_salty") || 50);
+const selectedChef = JSON.parse(localStorage.getItem("selectedChef") || "null");
+const answers = JSON.parse(localStorage.getItem("answers") || "{}");
 
 const submitOrder = () => {
   // 建立訂單物件
   const order = {
     id: Date.now(),
-    name,
-    email,
-    basis,
-    ingredients,
-    topping,
-    calmSpicy,
-    monochromeColorful,
-    sweetSalty,
+    customer: {
+      name,
+      email,
+    },
+    order: {
+      chefId: selectedChef?.id,
+      chefTitle: selectedChef?.title,
+      answers,
+    },
     createdAt: new Date().toLocaleString(),
   };
 
@@ -40,19 +33,15 @@ const submitOrder = () => {
   // 清除當前訂單數據
   localStorage.removeItem("art_name");
   localStorage.removeItem("art_email");
-  localStorage.removeItem("combo_basis");
-  localStorage.removeItem("combo_ingredients");
-  localStorage.removeItem("combo_topping");
-  localStorage.removeItem("sauce_calm_spicy");
-  localStorage.removeItem("sauce_monochrome_colorful");
-  localStorage.removeItem("sauce_sweet_salty");
+  localStorage.removeItem("selectedChef");
+  localStorage.removeItem("answers");
 
   alert("Order submitted successfully! / Bestellung erfolgreich eingereicht!");
-  window.location.hash = "#/";
+  window.location.hash = "#/orders";
 };
 
 const goBack = () => {
-  window.location.hash = "#/combo/sauce";
+  window.location.hash = "#/chef-detail";
 };
 
 const goHome = () => {
@@ -74,16 +63,23 @@ const goHome = () => {
 
       <div class="receipt-section">
         <h2>Order</h2>
-        <p><strong>Basis:</strong> {{ basis }}</p>
-        <p><strong>Ingredients:</strong> {{ ingredients }}</p>
-        <p><strong>Topping:</strong> {{ topping }}</p>
+        <p><strong>Chef:</strong> {{ selectedChef?.title }}</p>
       </div>
 
       <div class="receipt-section">
-        <h2>Secret Sauce</h2>
-        <p><strong>Calm → Spicy:</strong> {{ calmSpicy }}%</p>
-        <p><strong>Monochrome → Colorful:</strong> {{ monochromeColorful }}%</p>
-        <p><strong>Sweet → Salty:</strong> {{ sweetSalty }}%</p>
+        <h2>Answers</h2>
+        <div class="answer-item">
+          <strong>{{ selectedChef?.question1.title }}:</strong>
+          <span>{{ answers.question1 }}%</span>
+        </div>
+        <div class="answer-item">
+          <strong>{{ selectedChef?.question2.title }}:</strong>
+          <span>{{ answers.question2 }}</span>
+        </div>
+        <div class="answer-item">
+          <strong>{{ selectedChef?.question3.title }}:</strong>
+          <span>{{ answers.question3 }}</span>
+        </div>
       </div>
 
       <div class="nav-buttons">
