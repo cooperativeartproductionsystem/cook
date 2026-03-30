@@ -9,6 +9,7 @@ const goBack = () => {
   window.location.hash = "#/combo/topping";
 };
 
+
 const goNext = () => {
   localStorage.setItem("sauce_calm_spicy", calmSpicy.value);
   localStorage.setItem("sauce_monochrome_colorful", monochromeColorful.value);

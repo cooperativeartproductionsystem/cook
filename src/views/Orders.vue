@@ -11,22 +11,22 @@ onMounted(() => {
   }
 });
 
-// 按 Basis 分组
+// 按 Chef 分组
 const groupedOrders = computed(() => {
   const groups = {};
 
   orders.value.forEach((order) => {
-    const basis = order.basis || "Not selected";
-    if (!groups[basis]) {
-      groups[basis] = [];
+    const chef = order.order?.chefTitle || "Unknown Chef";
+    if (!groups[chef]) {
+      groups[chef] = [];
     }
-    groups[basis].push(order);
+    groups[chef].push(order);
   });
 
   return groups;
 });
 
-// 获取所有唯一的 Basis 类别
+// 获取所有唯一的 Chef 类别
 const categories = computed(() => {
   return Object.keys(groupedOrders.value).sort();
 });
@@ -83,12 +83,8 @@ const goHome = () => {
             <div class="table-header">
               <div class="col col-name">Name</div>
               <div class="col col-email">Email</div>
-              <div class="col col-basis">Basis</div>
-              <div class="col col-ingredients">Ingredients</div>
-              <div class="col col-topping">Topping</div>
-              <div class="col col-sauces">Calm→Spicy</div>
-              <div class="col col-sauces">Mono→Color</div>
-              <div class="col col-sauces">Sweet→Salty</div>
+              <div class="col col-chef">Chef</div>
+              <div class="col col-answers">Answers</div>
               <div class="col col-date">Created At</div>
               <div class="col col-action">Action</div>
             </div>
@@ -98,14 +94,20 @@ const goHome = () => {
               :key="order.id"
               class="table-row"
             >
-              <div class="col col-name">{{ order.name }}</div>
-              <div class="col col-email">{{ order.email }}</div>
-              <div class="col col-basis">{{ order.basis }}</div>
-              <div class="col col-ingredients">{{ order.ingredients }}</div>
-              <div class="col col-topping">{{ order.topping }}</div>
-              <div class="col col-sauces">{{ order.calmSpicy }}%</div>
-              <div class="col col-sauces">{{ order.monochromeColorful }}%</div>
-              <div class="col col-sauces">{{ order.sweetSalty }}%</div>
+              <div class="col col-name">{{ order.customer?.name }}</div>
+              <div class="col col-email">{{ order.customer?.email }}</div>
+              <div class="col col-chef">{{ order.order?.chefTitle }}</div>
+              <div class="col col-answers">
+                <div class="answer-item">
+                  <strong>Q1:</strong> {{ order.order?.answers?.question1 }}%
+                </div>
+                <div class="answer-item">
+                  <strong>Q2:</strong> {{ order.order?.answers?.question2 }}
+                </div>
+                <div class="answer-item">
+                  <strong>Q3:</strong> {{ order.order?.answers?.question3 }}
+                </div>
+              </div>
               <div class="col col-date">{{ order.createdAt }}</div>
               <div class="col col-action">
                 <button class="delete-btn" @click="deleteOrder(order.id)">

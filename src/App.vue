@@ -2,10 +2,8 @@
 import { ref, computed } from "vue";
 import Home from "./views/Home.vue";
 import Menu from "./views/Menu.vue";
-import Combo from "./views/Combo/Basis.vue";
-import Topping from "./views/Combo/Topping.vue";
-import Sauce from "./views/Combo/Sauce.vue";
-import Snack from "./views/Snack/Snack.vue";
+import ChefSelect from "./views/ChefSelect.vue";
+import ChefDetail from "./views/ChefDetail.vue";
 import Receipt from "./views/Receipt.vue";
 import Orders from "./views/Orders.vue";
 import NotFound from "./views/NotFound.vue";
@@ -13,11 +11,9 @@ import NotFound from "./views/NotFound.vue";
 const routes = {
   "/": Home,
   "/menu": Menu,
-  "/combo": Combo,
-  "/combo/topping": Topping,
-  "/combo/sauce": Sauce,
+  "/chef-select": ChefSelect,
+  "/chef-detail": ChefDetail,
   "/receipt": Receipt,
-  "/snack": Snack,
   "/orders": Orders,
 };
 
