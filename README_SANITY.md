@@ -25,7 +25,7 @@ src/
 ├── sanityService.js     # 數據服務層
 ├── sanitySchemas.js     # Schema 定義
 ├── views/
-│   ├── ChefSelect.vue   # 主廚選擇頁面
+│   ├── MenuWheel.vue    # 三層轉盤選擇頁面
 │   ├── ChefDetail.vue   # 三題表單頁面
 │   ├── Receipt.vue      # 收據確認頁面
 │   └── Orders.vue       # 訂單管理頁面

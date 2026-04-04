@@ -1,7 +1,7 @@
 <script setup>
 const name = localStorage.getItem("art_name") || "";
 
-const goChefSelect = () => {
+const goMenuWheel = () => {
   window.location.hash = "#/menu-wheel";
 };
 
@@ -19,7 +19,7 @@ const goBack = () => {
       <p class="user-name">Hello, {{ name }}.</p>
 
       <div class="menu-buttons">
-        <button class="menu-btn chef-select" @click="goChefSelect">
+        <button class="menu-btn menu-wheel" @click="goMenuWheel">
           Choose Chef
           <span>(Dynamic menu)</span>
         </button>
