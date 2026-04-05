@@ -54,10 +54,33 @@ const getParameterList = (order) => {
   return Array.isArray(parameters) ? parameters : [];
 };
 
-const deleteOrder = (orderId) => {
-  alert(
-    `Delete function is not connected to database yet. Order ID: ${orderId}`,
+const deleteOrder = async (orderId) => {
+  const confirmed = confirm(
+    "Are you sure you want to delete this order? / Sind Sie sicher, dass Sie diese Bestellung löschen möchten?",
   );
+
+  if (!confirmed) return;
+
+  try {
+    const res = await fetch("/api/delete-order", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ orderId }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data?.error || "Failed to delete order");
+    }
+
+    orders.value = orders.value.filter((order) => order._id !== orderId);
+  } catch (error) {
+    console.error("Delete order failed:", error);
+    alert(`Delete failed: ${error.message}`);
+  }
 };
 
 const clearAllOrders = () => {
