@@ -1,5 +1,6 @@
 <script setup>
 import { ref, computed, watch, onMounted, onUnmounted } from "vue";
+import { mapMidiToAngle, setupMidiListener, parseMidiControlChange } from "../utils/midiUtils";
 
 const props = defineProps({
   layers: {
@@ -99,72 +100,42 @@ const wrapAngle = (angle) => {
   return wrapped < 0 ? wrapped + Math.PI * 2 : wrapped;
 };
 
-const mapMidiToAngle = (midiValue) => {
-  return (midiValue / 127) * Math.PI * 2;
-};
-
 const handleMidiMessage = (event) => {
-  const [status, data1, data2] = event.data;
+  const midiData = parseMidiControlChange(event);
+  if (!midiData) return;
 
-  if ((status & 0xf0) === 0xb0) {
-    const channel = status & 0x0f;
-    const controlNumber = data1;
-    const midiValue = data2;
+  for (let circleIndex = 0; circleIndex < 3; circleIndex++) {
+    if (
+      props.midiChannels[circleIndex] === midiData.channel &&
+      props.midiControlNumbers[circleIndex] === midiData.controlNumber
+    ) {
+      const newAngle = mapMidiToAngle(midiData.value);
+      selectionAngles.value[circleIndex] = newAngle;
 
-    for (let circleIndex = 0; circleIndex < 3; circleIndex++) {
-      if (
-        props.midiChannels[circleIndex] === channel &&
-        props.midiControlNumbers[circleIndex] === controlNumber
-      ) {
-        const newAngle = mapMidiToAngle(midiValue);
-        selectionAngles.value[circleIndex] = newAngle;
+      const segmentCount = circleSegmentCounts.value[circleIndex];
+      const segment =
+        Math.floor((newAngle / (Math.PI * 2)) * segmentCount) % segmentCount;
+      const newSegments = [...internalSelectedSegments.value];
+      newSegments[circleIndex] = segment;
+      internalSelectedSegments.value = newSegments;
+      emitSelectedSegments(newSegments);
 
-        const segmentCount = circleSegmentCounts.value[circleIndex];
-        const segment =
-          Math.floor((newAngle / (Math.PI * 2)) * segmentCount) % segmentCount;
-        const newSegments = [...internalSelectedSegments.value];
-        newSegments[circleIndex] = segment;
-        internalSelectedSegments.value = newSegments;
-        emitSelectedSegments(newSegments);
-
-        break;
-      }
+      break;
     }
   }
 };
 
+// Setup MIDI listener using the utility
+let cleanupMidi = null;
 onMounted(() => {
-  if (props.midiEnabled && typeof navigator.requestMIDIAccess === "function") {
-    navigator.requestMIDIAccess().then(
-      (midiAccess) => {
-        const inputs = midiAccess.inputs.values();
-        for (
-          let input = inputs.next();
-          input && !input.done;
-          input = inputs.next()
-        ) {
-          input.value.onmidimessage = handleMidiMessage;
-        }
-      },
-      (error) => {
-        console.error("MIDI access failed:", error);
-      },
-    );
+  if (props.midiEnabled) {
+    cleanupMidi = setupMidiListener(handleMidiMessage);
   }
 });
 
 onUnmounted(() => {
-  if (props.midiEnabled && typeof navigator.requestMIDIAccess === "function") {
-    navigator.requestMIDIAccess().then((midiAccess) => {
-      const inputs = midiAccess.inputs.values();
-      for (
-        let input = inputs.next();
-        input && !input.done;
-        input = inputs.next()
-      ) {
-        input.value.onmidimessage = null;
-      }
-    });
+  if (cleanupMidi) {
+    cleanupMidi();
   }
 });
 
