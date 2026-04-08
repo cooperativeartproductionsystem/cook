@@ -1,6 +1,10 @@
 <script setup>
 import { ref, computed, watch, onMounted, onUnmounted } from "vue";
-import { mapMidiToAngle, setupMidiListener, parseMidiControlChange } from "../utils/midiUtils";
+import {
+  mapMidiToAngle,
+  setupMidiListener,
+  parseMidiControlChange,
+} from "../utils/midiUtils";
 
 const props = defineProps({
   layers: {
@@ -80,7 +84,7 @@ const handleWheel = (e, circleIndex) => {
 
   const segmentCount = circleSegmentCounts.value[circleIndex];
   const segment =
-    Math.round((newAngle / (Math.PI * 2)) * segmentCount) % segmentCount;
+    Math.floor((newAngle / (Math.PI * 2)) * segmentCount) % segmentCount;
 
   const newSegments = [...internalSelectedSegments.value];
   newSegments[circleIndex] = segment;
@@ -145,12 +149,15 @@ const getSegmentLabel = (segmentIndex, circleIndex) => {
 };
 
 const getSegmentStyle = (segmentIndex, circleIndex) => {
-  const segmentCount = circleSegmentCounts.value[circleIndex];
-  const angle = segmentIndex * (360 / segmentCount) * (Math.PI / 180);
+  const segmentAngleSize =
+    (2 * Math.PI) / circleSegmentCounts.value[circleIndex];
+  const segmentPositionAngle =
+    segmentIndex * segmentAngleSize - segmentAngleSize / 2;
+
   const radius = props.size * (0.3 + circleIndex * 0.2);
 
-  const x = Math.cos(angle) * radius + props.size / 2;
-  const y = Math.sin(angle) * radius + props.size / 2;
+  const x = Math.cos(segmentPositionAngle) * radius + radius;
+  const y = Math.sin(segmentPositionAngle) * radius + radius;
   const segmentSize = props.size * 0.12;
 
   const isSelected =
@@ -180,6 +187,14 @@ const getCircleStyle = (circleIndex) => {
   const radius = props.size * (0.3 + circleIndex * 0.2);
   const isHovered = selectedCircle.value === circleIndex;
 
+  const segmentAngleSize =
+    (2 * Math.PI) / circleSegmentCounts.value[circleIndex];
+  const segmentAnglePosition =
+    (internalSelectedSegments.value[circleIndex] * segmentAngleSize -
+      segmentAngleSize / 2 +
+      Math.PI / 2) *
+    (180 / Math.PI);
+
   return {
     width: `${radius * 2}px`,
     height: `${radius * 2}px`,
@@ -187,6 +202,7 @@ const getCircleStyle = (circleIndex) => {
     top: `${props.size / 2 - radius}px`,
     border: `4px solid ${isHovered ? "#FFC107" : circleIndex === 0 ? "#90CAF9" : circleIndex === 1 ? "#64B5F6" : "#42A5F5"}`,
     backgroundColor: isHovered ? "rgba(255, 193, 7, 0.1)" : "transparent",
+    transform: `rotate(-${segmentAnglePosition}deg)`,
   };
 };
 
@@ -221,10 +237,7 @@ const getCursorStyle = (circleIndex) => {
       @mouseenter="handleCircleMouseEnter(circleIndex)"
       @mouseleave="handleCircleMouseLeave"
       @wheel="handleWheel($event, circleIndex)"
-    ></div>
-
-    <!-- Segments for each circle -->
-    <div v-for="circleIndex in [2, 1, 0]" :key="`segments-${circleIndex}`">
+    >
       <div
         v-for="segmentIndex in circleSegmentCounts[circleIndex]"
         :key="`${circleIndex}-${segmentIndex}`"
@@ -238,12 +251,12 @@ const getCursorStyle = (circleIndex) => {
       </div>
     </div>
 
-    <!-- cursors for each circle -->
-    <div
+    <!-- cursors for each circle (for debugging) -->
+    <!-- <div
       v-for="circleIndex in [2, 1, 0]"
       class="radial-cursor"
       :style="getCursorStyle(circleIndex)"
-    ></div>
+    ></div> -->
   </div>
 </template>
 
@@ -257,7 +270,7 @@ const getCursorStyle = (circleIndex) => {
   position: absolute;
   border-radius: 50%;
   cursor: pointer;
-  transition: all 0.1s ease-out;
+  transition: all 0.3s ease-out;
 }
 
 .radial-segment {
