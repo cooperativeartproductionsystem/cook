@@ -3,7 +3,8 @@ import { computed, ref } from "vue";
 import SimpleWheel from "../components/SimpleWheel.vue";
 
 const savedOrderCount = Number(localStorage.getItem("order_counter") || "0");
-const orderCode = String(savedOrderCount + 1).padStart(4, "0");
+const orderCode = `ORD-${String(savedOrderCount + 1).padStart(4, "0")}`;
+
 const drinkOptions = ["Coffee", "Tea", "Water"];
 const selectedDrinkIndex = ref(0);
 const selectedDrink = computed(() => drinkOptions[selectedDrinkIndex.value]);
@@ -55,10 +56,10 @@ const submitOrder = async () => {
       return;
     }
 
-    const parameters = (selectedMenuItem.parameters || []).map((param) => ({
-      id: param.id,
-      name: param.name,
-      type: param.type,
+    const parameters = (selectedMenuItem?.parameters || []).map((param) => ({
+      id: param.id || "",
+      name: param.name || "",
+      type: param.type || "",
       value: formatParameterValue(param, parameterValues[param.id]),
     }));
 
@@ -76,7 +77,7 @@ const submitOrder = async () => {
       createdAt: new Date().toISOString(),
     };
 
-    const res = await fetch("/api/create-order", {
+    const res = await fetch("/.netlify/functions/create-order", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -84,11 +85,18 @@ const submitOrder = async () => {
       body: JSON.stringify(payload),
     });
 
-    const data = await res.json();
+    const text = await res.text();
+    let data = {};
+
+    try {
+      data = text ? JSON.parse(text) : {};
+    } catch (e) {
+      console.error("Response is not valid JSON:", text);
+    }
 
     if (!res.ok) {
-      console.error("Submit failed:", data);
-      alert(`Submit failed: ${data.error || "Unknown error"}`);
+      console.error("Submit failed:", res.status, data);
+      alert(`Submit failed: ${data.error || `HTTP ${res.status}`}`);
       return;
     }
 
@@ -98,9 +106,7 @@ const submitOrder = async () => {
     localStorage.removeItem("selectedMenuItem");
     localStorage.removeItem("parameterValues");
 
-    alert(
-      "Order submitted successfully! / Bestellung erfolgreich eingereicht!",
-    );
+    alert("Order submitted successfully!");
     window.location.hash = "#/orders";
   } catch (error) {
     console.error("Submit order error:", error);
@@ -133,7 +139,7 @@ const submitOrder = async () => {
       <div class="receipt-section" v-if="selectedMenuItem">
         <h2>Parameters</h2>
         <div
-          v-for="param in selectedMenuItem.parameters"
+          v-for="param in selectedMenuItem?.parameters || []"
           :key="param.id"
           class="parameter-item"
         >
@@ -153,7 +159,6 @@ const submitOrder = async () => {
       </div>
     </div>
 
-    <!-- Simple Wheel Component -->
     <div class="wheel-container">
       <SimpleWheel
         :options="drinkOptions"

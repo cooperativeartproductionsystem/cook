@@ -24,7 +24,7 @@ exports.handler = async (event) => {
 
   try {
     const body = JSON.parse(event.body || "{}");
-    const { customer, orderCode, order, createdAt } = body;
+    const { orderCode, order, createdAt } = body;
 
     if (
       !orderCode ||
@@ -66,17 +66,17 @@ exports.handler = async (event) => {
         chefName: order.chefName,
         menuItemId: order.menuItemId,
         menuItemName: order.menuItemName,
-        parameters: Array.isArray(order.parameters) ? order.parameters : [],
+        parameters: Array.isArray(order.parameters)
+          ? order.parameters.map((param) => ({
+              id: param?.id || "",
+              name: param?.name || "",
+              type: param?.type || "",
+              value: String(param?.value ?? ""),
+            }))
+          : [],
       },
       createdAt: createdAt || new Date().toISOString(),
     };
-
-    if (customer?.name || customer?.email) {
-      orderDocument.customer = {
-        name: customer?.name || "",
-        email: customer?.email || "",
-      };
-    }
 
     const url = `https://${projectId}.api.sanity.io/v${apiVersion}/data/mutate/${dataset}`;
 
