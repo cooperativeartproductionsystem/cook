@@ -17,8 +17,7 @@ const label = useTemplateRef("label");
 
 onMounted(() => {
   const circleType = new CircleType(label.value);
-  circleType.radius(props.radius - 30).dir(1);
-  // circleType.forceWidth(true);
+  circleType.radius(props.radius).dir(1);
 });
 </script>
 
