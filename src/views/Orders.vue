@@ -1,5 +1,6 @@
 <script setup>
 import { ref, computed, onMounted } from "vue";
+import { jsPDF } from "jspdf";
 
 const orders = ref([]);
 const isLoading = ref(true);
@@ -54,6 +55,66 @@ const getParameterList = (order) => {
   return Array.isArray(parameters) ? parameters : [];
 };
 
+const openPdf = (orderId) => {
+  const order = orders.value.find((o) => o._id === orderId);
+  if (!order) return;
+
+  const doc = new jsPDF({ unit: "mm", format: [57, 100] });
+  const yGap = 5;
+
+  // Add title
+  doc.setFontSize(10);
+  doc.text("Order Receipt", 15, 20);
+
+  // Add order details
+  doc.setFontSize(6);
+  let yPos = 30;
+
+  doc.text(`Order Code: ${order.orderCode || "Unknown"}`, 5, yPos);
+  yPos += yGap;
+
+  doc.text(`Chef: ${order.order?.chefName || "Unknown Chef"}`, 5, yPos);
+  yPos += yGap;
+
+  doc.text(
+    `Menu Item: ${order.order?.menuItemName || "Unknown Item"}`,
+    5,
+    yPos,
+  );
+  yPos += yGap;
+
+  doc.text(`Drink: ${order.order?.drinkName || "None"}`, 5, yPos);
+  yPos += yGap;
+
+  doc.text(`Snack: ${order.order?.snackName || "None"}`, 5, yPos);
+  yPos += yGap;
+
+  // Add parameters if any
+  if (order.order?.parameters && order.order.parameters.length > 0) {
+    yPos += 5;
+    doc.text("Parameters:", 5, yPos);
+    yPos += yGap;
+
+    order.order.parameters.forEach((param) => {
+      doc.text(`${param.name}: ${param.value}`, 8, yPos);
+      yPos += yGap;
+    });
+  }
+
+  // Add date
+  yPos += yGap;
+  doc.text(
+    `Created: ${order.createdAt ? new Date(order.createdAt).toLocaleString() : "Unknown"}`,
+    5,
+    yPos,
+  );
+
+  // Open PDF in new tab
+  const pdfBlob = doc.output("blob");
+  const pdfUrl = URL.createObjectURL(pdfBlob);
+  window.open(pdfUrl, "_blank");
+};
+
 const deleteOrder = async (orderId) => {
   const confirmed = confirm(
     "Are you sure you want to delete this order? / Sind Sie sicher, dass Sie diese Bestellung löschen möchten?",
@@ -84,15 +145,22 @@ const deleteOrder = async (orderId) => {
 };
 
 const clearAllOrders = () => {
-  alert("Clear All is not connected to database yet.");
+  alert("Clear All is not connected to database yet. Order Co");
+};
+
+const resetOrderCount = () => {
+  localStorage.setItem("order_counter", 0);
+  alert("Order count was reset to 0.");
 };
 </script>
 
 <template>
   <section class="page">
     <div class="art-card orders-page">
-      <h1 class="title">Order Management / Bestellungsverwaltung</h1>
-      <p class="subtitle">All Orders / Alle Bestellungen</p>
+      <div class="titles">
+        <h1 class="title">Order Management / Bestellungsverwaltung</h1>
+        <p class="subtitle">All Orders / Alle Bestellungen</p>
+      </div>
 
       <div v-if="isLoading" class="no-orders">
         <p>Loading orders... / Bestellungen werden geladen...</p>
@@ -115,60 +183,70 @@ const clearAllOrders = () => {
           <h2 class="category-title">{{ category }}</h2>
 
           <div class="orders-table">
-            <div class="table-header">
-              <div class="col col-code">Order Code</div>
-              <div class="col col-drink">Drink</div>
-              <div class="col col-snack">Snack</div>
-              <div class="col col-chef">Chef</div>
-              <div class="col col-item">Menu Item</div>
-              <div class="col col-params">Parameters</div>
-              <div class="col col-date">Created At</div>
-              <div class="col col-action">Action</div>
-            </div>
-
             <div
               v-for="order in groupedOrders[category]"
               :key="order._id"
               class="table-row"
             >
               <div class="col col-code">
+                <strong>Nr:</strong>
                 {{ order.orderCode || "Unknown" }}
               </div>
-              <div class="col col-drink">
-                {{ order.order?.drinkName || "None" }}
-              </div>
-              <div class="col col-snack">
-                {{ order.order?.snackName || "None" }}
-              </div>
-              <div class="col col-chef">
-                {{ order.order?.chefName || "Unknown Chef" }}
-              </div>
-              <div class="col col-item">
-                {{ order.order?.menuItemName || "Unknown Item" }}
-              </div>
 
-              <div class="col col-params">
-                <div
-                  v-for="param in getParameterList(order)"
-                  :key="param.id"
-                  class="param-item"
-                >
-                  <strong>{{ param.name }}:</strong> {{ param.value }}
+              <div class="col col-props">
+                <div class="main-props">
+                  <div class="prop">
+                    <strong>Size:</strong>
+                    {{ order.order?.snackName || "None" }}
+                  </div>
+                  <div class="prop">
+                    <strong>Category:</strong>
+                    {{ order.order?.chefName || "Unknown Chef" }}
+                  </div>
+                  <div class="prop">
+                    <strong>Dish:</strong>
+                    {{ order.order?.menuItemName || "Unknown Item" }}
+                  </div>
+                </div>
+
+                <div class="params">
+                  <strong>Parameters:</strong>
+                  <div
+                    v-for="param in getParameterList(order)"
+                    :key="param.id"
+                    class="param-item"
+                  >
+                    <em>{{ param.name }}:</em> {{ param.value }}
+                  </div>
+                </div>
+                <div class="drink">
+                  <strong>Drink:</strong>
+                  {{ order.order?.drinkName || "None" }}
                 </div>
               </div>
 
-              <div class="col col-date">
-                {{
-                  order.createdAt
-                    ? new Date(order.createdAt).toLocaleString()
-                    : "Unknown"
-                }}
-              </div>
-
               <div class="col col-action">
-                <button class="delete-btn" @click="deleteOrder(order._id)">
-                  Delete
-                </button>
+                <div class="date">
+                  {{
+                    order.createdAt
+                      ? new Date(order.createdAt).toLocaleString()
+                      : "Unknown"
+                  }}
+                </div>
+                <div class="buttons">
+                  <button
+                    class="action-btn delete-btn"
+                    @click="deleteOrder(order._id)"
+                  >
+                    Delete
+                  </button>
+                  <button
+                    class="action-btn pdf-btn"
+                    @click="openPdf(order._id)"
+                  >
+                    Reciept
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -184,6 +262,13 @@ const clearAllOrders = () => {
         >
           Clear All / Alles löschen
         </button>
+        <button
+          v-if="orders.length > 0"
+          class="clear-btn"
+          @click="resetOrderCount"
+        >
+          Reset Order Counter
+        </button>
       </div>
     </div>
   </section>
@@ -192,6 +277,11 @@ const clearAllOrders = () => {
 <style scoped lang="scss">
 .orders-page {
   max-width: 1400px;
+  padding: 3rem 0;
+}
+
+.titles {
+  text-align: center;
 }
 
 .no-orders {
@@ -205,6 +295,10 @@ const clearAllOrders = () => {
 }
 
 .category-section {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
   margin-bottom: 50px;
   border-top: 3px solid #333;
   padding-top: 20px;
@@ -225,39 +319,21 @@ const clearAllOrders = () => {
 
 .orders-table {
   width: 100%;
+  max-width: 800px;
   border-collapse: collapse;
   overflow-x: auto;
 }
 
-.table-header,
 .table-row {
-  display: grid;
-  grid-template-columns:
-    120px
-    180px
-    100px
-    120px
-    120px
-    200px
-    160px
-    90px;
-  gap: 10px;
+  display: flex;
+  /* justify-content: space-between; */
+  gap: 2rem;
   padding: 12px 10px;
-  border-bottom: 1px solid #ddd;
-  align-items: start;
-  font-size: 13px;
-}
-
-.table-header {
-  background-color: #f5f5f5;
-  font-weight: bold;
-  border-bottom: 2px solid #333;
-  position: sticky;
-  top: 0;
-}
-
-.table-row {
   background-color: #fff;
+  border-bottom: 1px solid #ddd;
+  /* align-items: center; */
+  /* font-size: 13px; */
+  margin: 1rem 0;
 
   &:hover {
     background-color: #f9f9f9;
@@ -268,44 +344,79 @@ const clearAllOrders = () => {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  font-size: 0.75rem;
+  flex-grow: 1;
+  line-height: 1.8;
 
-  &.col-name {
-    font-weight: 500;
-  }
+  &.col-props {
+    display: flex;
+    gap: 0.5rem 2rem;
 
-  &.col-email {
-    font-size: 12px;
-  }
-
-  &.col-date {
-    font-size: 12px;
-    white-space: normal;
-    overflow: visible;
-    text-overflow: unset;
-  }
-
-  &.col-params {
-    white-space: normal;
-    overflow: visible;
-    text-overflow: unset;
+    .params {
+      strong {
+        display: block;
+        margin-bottom: 0.125rem;
+      }
+    }
   }
 
   &.col-action {
-    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: center;
+
+    .buttons {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      text-align: center;
+      justify-content: center;
+    }
   }
 }
 
-.delete-btn {
+@media (max-width: 800px) {
+  .orders-table {
+    max-width: 600px;
+  }
+  .col.col-props {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 550px) {
+  .orders-table {
+    font-size: 1.25rem;
+  }
+
+  .col.col-action .buttons {
+    width: 100%;
+    flex-direction: column;
+  }
+}
+
+.action-btn {
+  flex-grow: 1;
   padding: 5px 10px;
-  background-color: #ff4444;
   color: white;
   border: none;
-  border-radius: 4px;
   cursor: pointer;
-  font-size: 12px;
+  border-radius: 4px;
 
-  &:hover {
-    background-color: #cc0000;
+  &.delete-btn {
+    background-color: #ff4444;
+    &:hover {
+      background-color: #cc0000;
+    }
+  }
+
+  &.pdf-btn {
+    background-color: #4caf50;
+
+    &:hover {
+      background-color: #45a049;
+    }
   }
 }
 
@@ -350,30 +461,12 @@ const clearAllOrders = () => {
   margin-bottom: 0;
 }
 
-@media (max-width: 1200px) {
-  .table-header,
-  .table-row {
-    grid-template-columns: 100px 150px 80px 100px 100px 150px 120px 70px;
-    font-size: 12px;
-  }
+.col-email {
+  display: none;
 }
 
-@media (max-width: 768px) {
-  .table-header,
-  .table-row {
-    grid-template-columns: 80px 120px 70px 80px 80px 120px 90px 60px;
-    gap: 5px;
-    padding: 8px 5px;
-    font-size: 11px;
-  }
-
-  .col-email {
-    display: none;
-  }
-
-  .table-header,
-  .table-row {
-    grid-template-columns: 80px 70px 80px 80px 120px 90px 60px;
-  }
+.table-header,
+.table-row {
+  grid-template-columns: 80px 70px 80px 80px 120px 90px 60px;
 }
 </style>
