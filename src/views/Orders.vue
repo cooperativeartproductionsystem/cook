@@ -55,12 +55,25 @@ const getParameterList = (order) => {
   return Array.isArray(parameters) ? parameters : [];
 };
 
-const openPdf = (orderId) => {
+const openPdf = async (orderId) => {
   const order = orders.value.find((o) => o._id === orderId);
   if (!order) return;
 
   const doc = new jsPDF({ unit: "mm", format: [57, 100] });
   const yGap = 5;
+
+  // Load custom font (TTF format)
+  const fontResponse = await fetch("/fonts/SplineSans-Variable.ttf");
+  const fontArrayBuffer = await fontResponse.arrayBuffer();
+  const fontBase64 = btoa(
+    new Uint8Array(fontArrayBuffer).reduce(
+      (data, byte) => data + String.fromCharCode(byte),
+      "",
+    ),
+  );
+  doc.addFileToVFS("SplineSans.ttf", fontBase64);
+  doc.addFont("SplineSans.ttf", "SplineSans", "normal");
+  doc.setFont("SplineSans");
 
   // Add title
   doc.setFontSize(10);
