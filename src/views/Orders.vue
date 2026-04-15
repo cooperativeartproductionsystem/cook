@@ -216,7 +216,7 @@ const clearAllOrders = () => {
                 </div>
                 <div class="drink">
                   <strong>Drink:</strong>
-                  {{ order.order?.drinkName.name || "None" }}
+                  {{ order.order?.drinkName || "None" }}
                 </div>
               </div>
 
