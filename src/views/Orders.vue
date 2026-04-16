@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed, onMounted } from "vue";
-import { generateOrderPdf, openPdfInNewTab } from "@/utils/pdfUtils";
+import { generateOrderPdf, openPdfWithName } from "@/utils/pdfUtils";
 
 const orders = ref([]);
 const isLoading = ref(true);
@@ -60,7 +60,7 @@ const openPdf = async (orderId) => {
   if (!order) return;
 
   const doc = await generateOrderPdf(order);
-  openPdfInNewTab(doc, `order-${order.orderCode || 'unknown'}`);
+  openPdfWithName(doc, `order-${order.orderCode || 'unknown'}`);
 };
 
 const deleteOrder = async (orderId) => {

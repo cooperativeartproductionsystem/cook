@@ -133,8 +133,26 @@ export const generateOrderPdf = async (order) => {
   return doc;
 };
 
-export const openPdfInNewTab = (doc) => {
+export const openPdfWithName = (doc, fileName = "order") => {
   const pdfBlob = doc.output("blob");
   const pdfUrl = URL.createObjectURL(pdfBlob);
-  window.open(pdfUrl, "_blank");
+
+  // Open in new tab for preview
+  // const previewWindow = window.open(pdfUrl, "_blank");
+
+  // Also trigger download with proper filename
+  const downloadLink = document.createElement("a");
+  downloadLink.href = pdfUrl;
+  downloadLink.download = `${fileName}.pdf`;
+  downloadLink.style.display = "none";
+
+  document.body.appendChild(downloadLink);
+  downloadLink.click();
+  document.body.removeChild(downloadLink);
+
+  // Clean up the URL object after a delay to allow both operations
+  // setTimeout(() => {
+  //   URL.revokeObjectURL(pdfUrl);
+  //   if (previewWindow) previewWindow.close();
+  // }, 500);
 };
