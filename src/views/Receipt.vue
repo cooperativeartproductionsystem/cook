@@ -208,7 +208,7 @@ const submitOrder = async () => {
             :selectedSegments="[selectedDrinkIndex]"
             @update:selectedSegments="onDrinkSelectionChange"
             :singleRing="true"
-            :size="400"
+            :size="300"
             :midiControlNumbers="[73]"
           />
         </div>
@@ -244,8 +244,7 @@ const submitOrder = async () => {
   justify-content: center;
   align-items: center;
   margin: 0 auto;
-  margin-top: 4rem;
-  padding: 2rem 0;
+  padding: 1rem 0;
   max-height: 600px;
 
   h3 {

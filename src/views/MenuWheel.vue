@@ -11,12 +11,17 @@
 
       <div class="main-content">
         <!-- Left: Wheel Selector -->
-        <RadialInterface
-          :layers="[menuConfig.snacks, menuConfig.chefs, availableMenuItems]"
-          :selectedSegments="radialSegments"
-          @update:selectedSegments="onRadialSelectedSegmentsChange"
-          :size="480"
-        />
+        <div class="wheel-container">
+          <RadialInterface
+            :layers="[menuConfig.snacks, menuConfig.chefs, availableMenuItems]"
+            :selectedSegments="radialSegments"
+            @update:selectedSegments="onRadialSelectedSegmentsChange"
+            :size="480"
+          />
+          <div class="time-info">Zubereitungszeit: ca. {{selectedSnack.id == "small" ? "10" : "20"}} min</div>
+        </div>
+
+
 
         <!-- Right: Dynamic Form -->
         <div class="form-section">
@@ -31,6 +36,7 @@
             @update:parameter="updateParameter"
           />
         </div>
+
       </div>
 
       <div class="nav-buttons">
@@ -76,11 +82,11 @@ const initializeSelections = () => {
   if (!selectedSnack.value && menuConfig.snacks.length > 0) {
     selectSnack(menuConfig.snacks[0]);
   }
-  
+
   if (!selectedChef.value && menuConfig.chefs.length > 0) {
     selectChef(menuConfig.chefs[0]);
   }
-  
+
   if (!selectedMenuItem.value && availableMenuItems.value.length > 0) {
     selectMenuItem(availableMenuItems.value[0]);
   }
@@ -154,5 +160,12 @@ const goNext = () => {
   flex-grow: 1;
   max-width: 400px;
   height: 100%;
+}
+
+.wheel-container {
+  text-align: center;
+.time-info {
+  font-weight: 600;
+}
 }
 </style>
