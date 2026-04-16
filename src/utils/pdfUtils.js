@@ -1,71 +1,133 @@
 import { jsPDF } from "jspdf";
 
 export const generateOrderPdf = async (order) => {
-  const doc = new jsPDF({ unit: "mm", format: [57, 100] });
+  const doc = new jsPDF({ unit: "mm", format: [57, 110] });
   const yGap = 5;
+  const xCenter = 28.5;
+  const xLeft = 8;
 
-  // Load custom font (TTF format)
+  // Load custom fonts (TTF format)
   try {
-    const fontResponse = await fetch("/fonts/SplineSans.ttf");
-    const fontArrayBuffer = await fontResponse.arrayBuffer();
-    const fontBase64 = btoa(
-      new Uint8Array(fontArrayBuffer).reduce(
+    // Load regular font
+    const regularFontResponse = await fetch("/fonts/SplineSans-Regular.ttf");
+    const regularFontArrayBuffer = await regularFontResponse.arrayBuffer();
+    const regularFontBase64 = btoa(
+      new Uint8Array(regularFontArrayBuffer).reduce(
         (data, byte) => data + String.fromCharCode(byte),
-        ""
-      )
+        "",
+      ),
     );
-    doc.addFileToVFS("SplineSans.ttf", fontBase64);
-    doc.addFont("SplineSans.ttf", "SplineSans", "normal");
-    doc.setFont("SplineSans");
+    doc.addFileToVFS("SplineSans-Regular.ttf", regularFontBase64);
+    doc.addFont("SplineSans-Regular.ttf", "SplineSans", "normal");
+
+    // Load bold font
+    const boldFontResponse = await fetch("/fonts/SplineSans-Bold.ttf");
+    const boldFontArrayBuffer = await boldFontResponse.arrayBuffer();
+    const boldFontBase64 = btoa(
+      new Uint8Array(boldFontArrayBuffer).reduce(
+        (data, byte) => data + String.fromCharCode(byte),
+        "",
+      ),
+    );
+    doc.addFileToVFS("SplineSans-Bold.ttf", boldFontBase64);
+    doc.addFont("SplineSans-Bold.ttf", "SplineSans", "bold");
+
+    // Set regular font as default
+    doc.setFont("SplineSans", "normal");
   } catch (error) {
-    console.error("Failed to load custom font, using default font:", error);
+    console.error("Failed to load custom fonts, using default font:", error);
   }
 
-  // Add title
-  doc.setFontSize(10);
-  doc.text("Order Receipt", 15, 20);
+  // Add logo image at the top
+  try {
+    const imageResponse = await fetch("/assets/caps-kitchen-complete.png");
+    const imageArrayBuffer = await imageResponse.arrayBuffer();
+    const imageBase64 = btoa(
+      new Uint8Array(imageArrayBuffer).reduce(
+        (data, byte) => data + String.fromCharCode(byte),
+        "",
+      ),
+    );
+    doc.addImage(imageBase64, "PNG", xCenter - 12.5, 3, 25, 25);
+  } catch (error) {
+    console.error("Failed to load logo image:", error);
+  }
 
-  // Add order details
-  doc.setFontSize(6);
-  let yPos = 30;
+  // Add title (bold) - positioned below the image
+  let yPos = 32;
+  doc.setFont("SplineSans", "bold");
+  doc.setFontSize(12);
+  doc.setCharSpace(0.1);
+  doc.text("BESTELLUNG", xCenter, yPos, "center");
+  yPos += 7;
 
-  doc.text(`Order Code: ${order.orderCode || "Unknown"}`, 5, yPos);
-  yPos += yGap;
+  // Add order details (centered and bold)
+  doc.setFont("SplineSans", "normal");
+  doc.setFontSize(8);
 
-  doc.text(`Chef: ${order.order?.chefName || "Unknown Chef"}`, 5, yPos);
+  doc.text(`Portion: ${order.order?.snackName || "None"}`, xLeft, yPos, "left");
   yPos += yGap;
 
   doc.text(
-    `Menu Item: ${order.order?.menuItemName || "Unknown Item"}`,
-    5,
+    `Kategorie: ${order.order?.chefName || "Unknown Chef"}`,
+    xLeft,
     yPos,
+    "left",
   );
   yPos += yGap;
 
-  doc.text(`Drink: ${order.order?.drinkName || "None"}`, 5, yPos);
+  doc.text(
+    `Gericht: ${order.order?.menuItemName || "Unknown Item"}`,
+    xLeft,
+    yPos,
+    "left",
+  );
   yPos += yGap;
 
-  doc.text(`Snack: ${order.order?.snackName || "None"}`, 5, yPos);
-  yPos += yGap;
+  // Switch to regular font for parameters
+  doc.setFont("SplineSans", "normal");
 
   // Add parameters if any
   if (order.order?.parameters && order.order.parameters.length > 0) {
-    yPos += 5;
-    doc.text("Parameters:", 5, yPos);
+    yPos += 2;
+    doc.setFont("SplineSans", "bold");
+    doc.text("Geschmacksprofil:", xLeft, yPos, "left");
+    doc.setFont("SplineSans", "normal");
     yPos += yGap;
 
     order.order.parameters.forEach((param) => {
-      doc.text(`${param.name}: ${param.value}`, 8, yPos);
+      doc.text(`${param.name}: ${param.value}`, xLeft, yPos, "left");
       yPos += yGap;
     });
   }
+  yPos += 2;
 
-  // Add date
+  // Add drink if available
+  if (order.order?.drinkName && order.order.drinkName !== "None") {
+    doc.setFont("SplineSans", "bold");
+    doc.text(`Getränk:`, xLeft, yPos, "left");
+    yPos += yGap;
+    doc.setFont("SplineSans", "normal");
+    doc.text(`${order.order.drinkName}`, xLeft, yPos, "left");
+    yPos += yGap;
+  }
+
+  // Add Number and date
   yPos += yGap;
+
+  doc.setFontSize(16);
+  doc.setFont("SplineSans", "bold");
+  doc.align;
+  doc.text(`# ${order.orderCode || "Unknown"}`, xCenter, yPos, "center");
+  yPos += yGap;
+
+  doc.setFontSize(6);
+  doc.setFont("SplineSans", "normal");
   doc.text(
-    `Created: ${order.createdAt ? new Date(order.createdAt).toLocaleString() : "Unknown"}`,
-    5,
+    `${order.createdAt ? new Date(order.createdAt).toLocaleString() : "Unknown"}`,
+    xCenter,
     yPos,
+    "center",
   );
 
   return doc;

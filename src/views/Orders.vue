@@ -60,7 +60,7 @@ const openPdf = async (orderId) => {
   if (!order) return;
 
   const doc = await generateOrderPdf(order);
-  openPdfInNewTab(doc);
+  openPdfInNewTab(doc, `order-${order.orderCode || 'unknown'}`);
 };
 
 const deleteOrder = async (orderId) => {
