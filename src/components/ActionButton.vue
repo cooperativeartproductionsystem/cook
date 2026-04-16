@@ -29,6 +29,17 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  /** Icon asset URL */
+  icon: {
+    type: String,
+    default: null,
+  },
+  /** Icon position (left or right) */
+  iconPosition: {
+    type: String,
+    default: "left",
+    validator: (value) => ["left", "right"].includes(value),
+  },
 });
 
 const emit = defineEmits(["click"]);
@@ -75,14 +86,26 @@ onUnmounted(() => {
     class="app-button"
     :class="[`app-button--${type}`, { 'app-button--disabled': disabled }]"
   >
+    <img
+      v-if="icon && iconPosition === 'left'"
+      :src="icon"
+      alt=""
+      class="app-button__icon app-button__icon--left"
+    />
     <span class="app-button__text">{{ text }}</span>
+    <img
+      v-if="icon && iconPosition === 'right'"
+      :src="icon"
+      alt=""
+      class="app-button__icon app-button__icon--right"
+    />
   </button>
 </template>
 
 <style scoped>
 .app-button {
   position: relative;
-  padding: 0.25rem 0.5rem;
+  padding: 0.5rem 0.5rem;
   border: 3px solid var(--color-outline);
   border-radius: 8px;
   font-size: 1rem;
@@ -92,9 +115,23 @@ onUnmounted(() => {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
+  gap: 0.25rem;
   min-width: 6rem;
   color: var(--color-text);
+}
+
+.app-button__icon {
+  width: 1rem;
+  height: 1rem;
+  object-fit: contain;
+}
+
+.app-button__icon--left {
+  margin-right: 0.25rem;
+}
+
+.app-button__icon--right {
+  margin-left: 0.25rem;
 }
 
 .app-button:hover:not(:disabled) {

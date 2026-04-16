@@ -218,12 +218,16 @@ const submitOrder = async () => {
         <ActionButton
           text="Zurück"
           type="back"
+          icon="/assets/arrow-icon-left.svg"
+          icon-position="left"
           shortcutKey="ArrowLeft"
           @click="goBack"
         />
         <ActionButton
           text="Absenden"
           type="primary"
+          icon="/assets/arrow-icon.svg"
+          icon-position="left"
           shortcutKey="ArrowRight"
           @click="submitOrder"
         />

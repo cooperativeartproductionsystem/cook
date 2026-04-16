@@ -35,8 +35,10 @@
 
       <div class="nav-buttons">
         <ActionButton
-          text="Next"
+          text="Weiter"
           type="secondary"
+          icon="/assets/arrow-icon.svg"
+          icon-position="left"
           shortcutKey="ArrowRight"
           @click="goNext"
         />
