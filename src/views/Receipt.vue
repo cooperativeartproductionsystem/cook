@@ -8,9 +8,9 @@ const orderCode = ref("001"); // 預設值
 const isLoadingOrderCode = ref(true);
 
 const drinkOptions = [
-  { id: "coffee", name: "Kaffee" },
-  { id: "tea", name: "Tee" },
   { id: "water", name: "Wasser" },
+  { id: "coke", name: "Cola" },
+  { id: "mate", name: "Mate" },
 ];
 
 const selectedDrinkIndex = ref([0]);
